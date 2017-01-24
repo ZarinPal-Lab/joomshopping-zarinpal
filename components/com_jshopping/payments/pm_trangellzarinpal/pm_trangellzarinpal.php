@@ -43,18 +43,18 @@ class pm_trangellzarinpal extends PaymentRoot{
         $MerchantId = $pmconfigs['merchant_id'];	
 
 
-		if (!isset($MerchantId)) {	
+		if (!isset($MerchantId) || $MerchantId == '') {	
 			$app->redirect($notify_url2, '<h2>لطفا تنظیمات درگاه زیرین پال را بررسی کنید</h2>', $msgType='Error'); 
 		}
 		
 		try {
-			//  $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 	
+			 // $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 	
 			$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
 
 			$result = $client->PaymentRequest(
 				[
 					'MerchantID' => $MerchantId,
-					'Amount' =>  $this->fixOrderTotal($order)/10 ,// Toman 
+					'Amount' =>  round($this->fixOrderTotal($order),0)/10 ,// Toman 
 					'Description' => $Description,
 					'Email' => '',
 					'Mobile' => '',
@@ -101,7 +101,7 @@ class pm_trangellzarinpal extends PaymentRoot{
 							[
 								'MerchantID' => $pmconfigs['merchant_id'],
 								'Authority' => $Authority,
-								'Amount' => $this->fixOrderTotal($order)/10 // Toman 
+								'Amount' => round($this->fixOrderTotal($order),0)/10 // Toman 
 							]
 						);
 						$resultStatus = abs($result->Status); 
@@ -146,7 +146,7 @@ class pm_trangellzarinpal extends PaymentRoot{
         $params['order_id'] = $oId;
         $params['hash'] = "";
         $params['checkHash'] = 0;
-        $params['checkReturnParams'] = 0;
+        $params['checkReturnParams'] = 1;
 		return $params;
     }
     
