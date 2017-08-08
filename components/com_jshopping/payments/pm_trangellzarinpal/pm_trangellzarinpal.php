@@ -48,8 +48,8 @@ class pm_trangellzarinpal extends PaymentRoot{
 		}
 		
 		try {
-			 // $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 	
-			$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
+			 $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 	
+			//$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
 
 			$result = $client->PaymentRequest(
 				[
@@ -64,8 +64,8 @@ class pm_trangellzarinpal extends PaymentRoot{
 			
 			$resultStatus = abs($result->Status); 
 			if ($resultStatus == 100) {
-				//Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority); 
-				Header('Location: https://sandbox.zarinpal.com/pg/StartPay/'.$result->Authority); // for local/
+				Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority); 
+				//Header('Location: https://sandbox.zarinpal.com/pg/StartPay/'.$result->Authority); // for local/
 			} else {
 				echo'ERR: '.$resultStatus;
 			}
@@ -94,8 +94,8 @@ class pm_trangellzarinpal extends PaymentRoot{
 			if (checkHack::checkString($status)){
 				if ($status == 'OK') {
 					try {
-						// $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
-						$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
+						$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
+						//$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
 
 						$result = $client->PaymentVerification(
 							[
