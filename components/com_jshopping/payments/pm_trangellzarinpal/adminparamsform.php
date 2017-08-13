@@ -22,6 +22,18 @@ defined('_JEXEC') or die();
    </td>
  </tr>
  <tr>
+   <td  class="key">
+     <?php echo 'درگاه زرین گیت';?>
+   </td>
+    <td style="text-align: right;">
+     <?php              
+     print JHTML::_('select.booleanlist', 'pm_params[zaringate]', 'class = "inputbox" size = "0"', $params['zaringate']);
+     echo JHTML::tooltip('درگاه زرین گیت');
+     ?>
+     
+   </td>
+ </tr>
+ <tr>
    <td class="key">
      <?php echo _JSHOP_TRANSACTION_END;?>
    </td>

@@ -4,7 +4,7 @@
  * @subpackage  com_Jshopping
  * @subpackage 	trangell_Zarinpal
  * @copyright   trangell team => https://trangell.com
- * @copyright   Copyright (C) 20016 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2017 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 defined('_JEXEC') or die();
@@ -42,7 +42,6 @@ class pm_trangellzarinpal extends PaymentRoot{
         $CallbackURL =$return;
         $MerchantId = $pmconfigs['merchant_id'];	
 
-
 		if (!isset($MerchantId) || $MerchantId == '') {	
 			$app->redirect($notify_url2, '<h2>لطفا تنظیمات درگاه زیرین پال را بررسی کنید</h2>', $msgType='Error'); 
 		}
@@ -64,7 +63,12 @@ class pm_trangellzarinpal extends PaymentRoot{
 			
 			$resultStatus = abs($result->Status); 
 			if ($resultStatus == 100) {
-				Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority); 
+				if (intval($pmconfigs['zaringate']) == 0){
+					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority); 
+				}
+				else {
+					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority.'‪/ZarinGate‬‬'); 
+				}
 				//Header('Location: https://sandbox.zarinpal.com/pg/StartPay/'.$result->Authority); // for local/
 			} else {
 				echo'ERR: '.$resultStatus;
@@ -94,7 +98,12 @@ class pm_trangellzarinpal extends PaymentRoot{
 			if (checkHack::checkString($status)){
 				if ($status == 'OK') {
 					try {
-						$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
+						if (intval($pmconfigs['zaringate']) == 0){
+							$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
+						}
+						else {
+							$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl/ZarinGate', ['encoding' => 'UTF-8']); 
+						}
 						//$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
 
 						$result = $client->PaymentVerification(
