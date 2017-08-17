@@ -63,7 +63,7 @@ class pm_trangellzarinpal extends PaymentRoot{
 			
 			$resultStatus = abs($result->Status); 
 			if ($resultStatus == 100) {
-				if (intval($pmconfigs['zaringate']) == 0){
+				if ($pmconfigs['zaringate'] == 0){
 					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority); 
 				}
 				else {
@@ -98,12 +98,7 @@ class pm_trangellzarinpal extends PaymentRoot{
 			if (checkHack::checkString($status)){
 				if ($status == 'OK') {
 					try {
-						if (intval($pmconfigs['zaringate']) == 0){
-							$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
-						}
-						else {
-							$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl/ZarinGate', ['encoding' => 'UTF-8']); 
-						}
+						$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
 						//$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
 
 						$result = $client->PaymentVerification(
