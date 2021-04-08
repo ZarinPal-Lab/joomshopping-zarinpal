@@ -93,12 +93,22 @@ class pm_trangellzarinpal extends PaymentRoot{
             }else if ($result['data']['code'] == 100) {
 
 				//if ($pmconfigs['zaringate'] == 0){
-					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result['data']["authority"]);
+					//Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result['data']["authority"]);
 				//}
 				//else {
 					//Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority.'‪/ZarinGate‬‬');
 				//}
 				//Header('Location: https://sandbox.zarinpal.com/pg/StartPay/'.$result->Authority); // for local/
+                echo'<html><body>
+<script type="text/javascript" src="https://cdn.zarinpal.com/zarinak/v1/checkout.js"></script>
+<script type="text/javascript">
+window.onload = function () {
+Zarinak.setAuthority("' . $result['data']['authority'] . '");
+Zarinak.showQR();
+Zarinak.open();
+};
+</script>
+</body></html>';
 			} else {
 				echo'ERR: '.$result['errors']['code'];
 			}
