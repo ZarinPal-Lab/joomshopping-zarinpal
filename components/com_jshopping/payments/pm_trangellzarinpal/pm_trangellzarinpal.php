@@ -47,9 +47,9 @@ class pm_trangellzarinpal extends PaymentRoot{
 		}
 		
 		try {
-			 $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 	
+			// $client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']);
 			//$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
-
+/*
 			$result = $client->PaymentRequest(
 				[
 					'MerchantID' => $MerchantId,
@@ -59,22 +59,51 @@ class pm_trangellzarinpal extends PaymentRoot{
 					'Mobile' => '',
 					'CallbackURL' => $CallbackURL,
 				]
-			);
+			);*/
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+            $data = array("merchant_id" => $MerchantId,
+                "amount" => round($this->fixOrderTotal($order),0)/10,
+                "callback_url" => $CallbackURL,
+                "description" => $Description,
+                "metadata" => [ "email" => "0","mobile"=>"0"],
+            );
+            $jsonData = json_encode($data);
+            $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/request.json');
+            curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v1');
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($jsonData)
+            ));
+
+            $result = curl_exec($ch);
+            $err = curl_error($ch);
+            $result = json_decode($result, true, JSON_PRETTY_PRINT);
+            curl_close($ch);
+/// ////////////////////////////////////////////////////////////////////////////////////////////////
 			
-			$resultStatus = abs($result->Status); 
-			if ($resultStatus == 100) {
-				if ($pmconfigs['zaringate'] == 0){
-					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority); 
-				}
-				else {
-					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority.'‪/ZarinGate‬‬'); 
-				}
+			//$resultStatus = abs($result->Status);
+            if(empty($result['errors'])){
+
+                echo'ERR: '.$result['errors']['code'];
+
+            }else if ($result['data']['code'] == 100) {
+
+				//if ($pmconfigs['zaringate'] == 0){
+					Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result['data']["authority"]);
+				//}
+				//else {
+					//Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority.'‪/ZarinGate‬‬');
+				//}
 				//Header('Location: https://sandbox.zarinpal.com/pg/StartPay/'.$result->Authority); // for local/
 			} else {
-				echo'ERR: '.$resultStatus;
+				echo'ERR: '.$result['errors']['code'];
 			}
 		}
-		catch(\SoapFault $e) {
+		catch(Exception $e) {
 			$msg= $this->getGateMsg('error'); 
 			$app	= JFactory::getApplication();
 			$app->redirect($notify_url2, '<h2>'.$msg.'</h2>', $msgType='Error'); 
@@ -92,37 +121,53 @@ class pm_trangellzarinpal extends PaymentRoot{
 			// $Mobile = $order->phone;
             //==================================================================
 		
-			$Authority = $jinput->get->get('Authority', '0', 'INT');
+			$Authority = $jinput->get->get('Authority', 'STRING');
 			$status = $jinput->get->get('Status', '', 'STRING');
 					
 			if (checkHack::checkString($status)){
 				if ($status == 'OK') {
 					try {
-						$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); 
+						//$client = new SoapClient('https://www.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']);
 						//$client = new SoapClient('https://sandbox.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']); // for local
 
-						$result = $client->PaymentVerification(
+						/*$result = $client->PaymentVerification(
 							[
 								'MerchantID' => $pmconfigs['merchant_id'],
 								'Authority' => $Authority,
 								'Amount' => round($this->fixOrderTotal($order),0)/10 // Toman 
 							]
-						);
-						$resultStatus = abs($result->Status); 
-						if ($resultStatus == 100) {
-							$msg= $this->getGateMsg($resultStatus); 
-							$message = "کد پیگیری".$result->RefID."<br>" ."شماره سفارش ".$order->order_id;
+						);*/
+						///////////////////////////////////////////////////////////////////////////////////////
+                        $data = array("merchant_id" => $pmconfigs['merchant_id'], "authority" => $Authority, "amount" => round($this->fixOrderTotal($order),0)/10);
+                        $jsonData = json_encode($data);
+                        $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/verify.json');
+                        curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v4');
+                        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                            'Content-Type: application/json',
+                            'Content-Length: ' . strlen($jsonData)
+                        ));
+                        $result = curl_exec($ch);
+                        curl_close($ch);
+                        $result = json_decode($result, true);
+                        /// ///////////////////////////////////////////////////////////////////////////////////
+						//$resultStatus = abs($result->Status);
+						if ($result['data']['code'] == 100) {
+							$msg= $this->getGateMsg($result['data']['code']);
+							$message = "کد پیگیری".$result['data']['ref_id']."<br>" ."شماره سفارش ".$order->order_id;
 							$app->enqueueMessage($message, 'message');
-						    saveToLog("payment.log", "Status Complete. Order ID ".$order->order_id.". message: ".$msg . " statud_code: " . $result->RefID);
+						    saveToLog("payment.log", "Status Complete. Order ID ".$order->order_id.". message: ".$msg . " statud_code: " . $result['data']['ref_id']);
 							return array(1, "");
 						} 
 						else {
-							$msg= $this->getGateMsg($resultStatus); 
+							$msg= $this->getGateMsg($result['errors']['code']);
 							saveToLog("payment.log", "Status failed. Order ID ".$order->order_id.". message: ".$msg );
 							$app->redirect($cancel_return, '<h2>'.$msg.'</h2>', $msgType='Error'); 
 						}
 					}
-					catch(\SoapFault $e) {
+					catch(Exception $e) {
 						$msg= $this->getGateMsg('error'); 
 						saveToLog("payment.log", "Status failed. Order ID ".$order->order_id.". message: ".$msg );
 						$app->redirect($cancel_return, '<h2>'.$msg.'</h2>' , $msgType='Error'); 
